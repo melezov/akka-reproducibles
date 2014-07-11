@@ -48,7 +48,7 @@ class BridgeDirectSpec
         And("the response body should be Phew... finished!")
         slowRes.getResponseBody should be ("Phew... finished!")
 
-      } should be > 1000
+      } should be >= 1000
 
       And("the response should take more than 1000 ms")
     }
@@ -83,5 +83,6 @@ class BridgeDirectSpec
       And("the response body should contain the error message")
       errorRes.getResponseBody should startWith ("You requested an error")
     }
+
   }
 }

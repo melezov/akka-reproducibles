@@ -73,8 +73,6 @@ class BridgeActor extends Actor with HttpService {
         entity(as[Array[Byte]]) { body =>
           detach() {
             complete {
-              println("Received body: " + body.length)
-
               body
             }
           }

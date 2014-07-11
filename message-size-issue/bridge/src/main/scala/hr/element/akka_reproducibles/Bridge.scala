@@ -13,7 +13,7 @@ import spray.can.Http
 object Bridge extends App {
   implicit val system = ActorSystem("bridge-spray", ConfigFactory.load("bridge-spray.conf"))
 
-val bridgeActor = system.actorOf(Props[BridgeActor](new BridgeActor()), "bridge-actor")
+  val bridgeActor = system.actorOf(Props[BridgeActor], "bridge-actor")
   IO(Http) ! Http.Bind(bridgeActor, interface = "10.5.100.14", port = 8080)
 
   println("Press [enter] to kill Bridge")

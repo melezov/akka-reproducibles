@@ -17,6 +17,7 @@ class BridgeMessageSizeSpec
     extends FeatureSpec with GivenWhenThen with Matchers {
 
   feature("Bridge will accept requests up to a limit") {
+
     info("There are some tests that do not propagate to the server,")
     info("but rather test spray acceptance of payloads in regards to their size")
 
@@ -44,7 +45,6 @@ class BridgeMessageSizeSpec
       echoRes.getResponseBodyAsBytes() should be ("B" * 1000000 getBytes)
     }
 
-
     scenario("echo C * 100M") {
       When("a request for 100M C echo")
       val echoFut = Http(url("http://10.5.100.14:8080/bridge/test/echo") << ("C" * 100000000))
@@ -55,6 +55,16 @@ class BridgeMessageSizeSpec
 
       And("the response body should be 100.000.000 bytes of Cs")
       echoRes.getResponseBodyAsBytes() should be ("C" * 100000000 getBytes)
+    }
+
+    scenario("echo F * 100M+1 (expecting failure)") {
+      Given("That the bridge limit for spray messages is 100.000.000 bytes")
+      When("a request is made with a payload of 100.000.001 Fs")
+      val echoFut = Http(url("http://10.5.100.14:8080/bridge/test/echo") << ("F" * 100000001))
+      val echoRes = Await.result(echoFut, 10 seconds)
+
+      Then("the status code should be 413")
+      echoRes.getStatusCode should be(413)
     }
 
   }
