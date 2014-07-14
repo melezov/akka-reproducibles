@@ -10,19 +10,17 @@ import org.scalatest.junit.JUnitRunner
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 @RunWith(classOf[JUnitRunner])
-class BridgeDirectSpec
+class ServerDirectSpec
     extends FeatureSpec with GivenWhenThen with Matchers {
 
-  feature("Bridge directly responds to some stimuli") {
+  feature("Bridge proxies requests through to server") {
 
-    info("There are some tests that do not propagate to the server,")
-    info("but rather test bridge availability / health")
-
-    scenario("200 without detach") {
+    scenario("200 OK") {
       When("a request for 200 OK is sent")
-      val okFut = Http(url("http://akka-reproducibles-bridge:8080/bridge/test/ok"))
+      val okFut = Http(url("http://akka-reproducibles-bridge:8080/server/test/ok"))
       val okRes = Await.result(okFut, 10 seconds)
 
       Then("the status code should be 200")
@@ -34,11 +32,12 @@ class BridgeDirectSpec
 
     scenario("Slow 201") {
       Given("that the timeout spray can timeout was set to 5 seconds")
+      And("that the timeout on server is set to 3 seconds")
 
       timed {
 
         When("a request for 201 after 1 second wait is sent")
-        val slowFut = Http(url("http://akka-reproducibles-bridge:8080/bridge/test/slow"))
+        val slowFut = Http(url("http://akka-reproducibles-bridge:8080/server/test/slow"))
         val slowRes = Await.result(slowFut, 10 seconds)
 
         Then("the status code should be 201")
@@ -58,7 +57,7 @@ class BridgeDirectSpec
       timed {
 
         When("a request for 500 timout")
-        val timeoutFut = Http(url("http://akka-reproducibles-bridge:8080/bridge/test/timeout"))
+        val timeoutFut = Http(url("http://akka-reproducibles-bridge:8080/server/test/timeout"))
         val timeoutRes = Await.result(timeoutFut, 10 seconds)
 
         Then("the status code should be 500")
@@ -73,7 +72,7 @@ class BridgeDirectSpec
       Given("that we want to verify what happens on error without detach")
 
       When("a request for an error is sent")
-      val errorFut = Http(url("http://akka-reproducibles-bridge:8080/bridge/test/error"))
+      val errorFut = Http(url("http://akka-reproducibles-bridge:8080/server/test/error"))
       val errorRes = Await.result(errorFut, 10 seconds)
 
       Then("the status code should be 500")

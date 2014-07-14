@@ -9,16 +9,15 @@ import org.scalatest.Matchers
 import org.scalatest.junit.JUnitRunner
 
 import scala.concurrent.Await
+import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
 
 @RunWith(classOf[JUnitRunner])
-class BridgeAggregatedSpec
+class ServerAggregatedSpec
     extends FeatureSpec with GivenWhenThen with Matchers {
 
-  feature("Bridge processes requests asynchronously") {
-
-    info("There are some tests that do not propagate to the server,")
-    info("but rather test bridge availability / health")
+  feature("Server processes requests asynchronously") {
 
     scenario("Slow 201") {
       Given("that the slow tests takes around 1 second")
@@ -27,7 +26,7 @@ class BridgeAggregatedSpec
       timed {
         val slowFutures =
           (for (i <- 1 to 200) yield {
-            Http(url("http://akka-reproducibles-bridge:8080/bridge/test/slow"))
+            Http(url("http://akka-reproducibles-bridge:8080/server/test/slow"))
           })
 
         val slowResults = Await.result(
@@ -51,7 +50,7 @@ class BridgeAggregatedSpec
       timed {
         val timeoutFutures =
           (for (i <- 1 to 200) yield {
-            Http(url("http://akka-reproducibles-bridge:8080/bridge/test/timeout"))
+            Http(url("http://akka-reproducibles-bridge:8080/server/test/timeout"))
           })
 
         val timeoutResults = Await.result(

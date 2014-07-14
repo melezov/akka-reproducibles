@@ -35,14 +35,11 @@ scalacOptions := Seq(
 )
 
 libraryDependencies ++= Seq(
-  "com.typesafe.akka" %% "akka-actor"  % "2.3.2"
-, "com.typesafe.akka" %% "akka-remote" % "2.3.2"
-, "com.typesafe.akka" %% "akka-slf4j"  % "2.3.2"
-, "io.spray"  %%  "spray-can"      % "1.3.1"
-, "io.spray"  %%  "spray-routing"  % "1.3.1"
-, "io.spray"  %%  "spray-servlet"  % "1.3.1"
-, "io.spray"  %%  "spray-httpx"    % "1.3.1"
-, "ch.qos.logback" % "logback-classic" % "1.1.2"
+  "com.typesafe.akka" %% "akka-remote"     % "2.3.4"
+, "com.typesafe.akka" %% "akka-slf4j"      % "2.3.4"
+, "io.spray"          %% "spray-can"       % "1.3.1"
+, "io.spray"          %% "spray-routing"   % "1.3.1"
+, "ch.qos.logback"    %  "logback-classic" % "1.1.2"
 )
 
 unmanagedSourceDirectories in Compile := Seq((scalaSource in Compile).value)
@@ -50,3 +47,5 @@ unmanagedSourceDirectories in Compile := Seq((scalaSource in Compile).value)
 unmanagedSourceDirectories in Test := Nil
 
 EclipseKeys.createSrc := EclipseCreateSrc.Default + EclipseCreateSrc.Resource
+
+Revolver.settings

@@ -20,14 +20,11 @@ import spray.routing._
 import spray.httpx.unmarshalling._
 import spray.httpx.encoding.Gzip
 
-class BridgeActor extends Actor with HttpService {
-  def actorRefFactory = context
+trait BridgeActor extends HttpService {
+  private implicit val bridgeExecutionContext =
+    BridgeServices.executionContext
 
-  implicit val executionContext = ExecutionContext.fromExecutor(
-    Executors.newCachedThreadPool()
-  )
-
-  def receive = runRoute(
+  val bridgeRoutes = (
     path("bridge" / "test" / "ok") {
       get {
         // do not require detach, return directly
@@ -70,7 +67,7 @@ class BridgeActor extends Actor with HttpService {
     ~
     path("bridge" / "test" / "echo") {
       post {
-        entity(as[Array[Byte]]) { body =>
+        entity(as[String]) { body =>
           detach() {
             complete {
               body
@@ -80,7 +77,7 @@ class BridgeActor extends Actor with HttpService {
       }
     }
     ~
-    path("bridge" / "listener") {
+    path("bridge" / "process") {
       post {
         entity(as[String]) { body =>
           detach() {
@@ -90,10 +87,6 @@ class BridgeActor extends Actor with HttpService {
       }
     }
   )
-
-  implicit def exceptionHandler = ExceptionHandler {
-    case e: Exception => _.complete((500, e.getMessage))
-  }
 
   def processRequest(body: String) = {
     HttpResponse(200, "Received body of size: " + body.length)

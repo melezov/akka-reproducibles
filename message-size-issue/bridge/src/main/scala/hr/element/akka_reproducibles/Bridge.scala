@@ -1,24 +1,43 @@
 package hr.element.akka_reproducibles
 
-import akka.actor.{ ActorSystem, Props }
+import akka.actor._
 import akka.io.IO
-
 import com.typesafe.config.ConfigFactory
-
-import scala.annotation.tailrec
-
-import spray.servlet.WebBoot
+import scala.concurrent.duration._
+import scala.concurrent.Await
 import spray.can.Http
+import spray.routing.ExceptionHandler
+
+import java.util.concurrent.Executors
+import scala.concurrent.ExecutionContext
+
+object BridgeServices {
+  implicit val executionContext = ExecutionContext.fromExecutor(
+    Executors.newCachedThreadPool()
+  )
+}
+
+class BridgeServices(val serverActor: ActorSelection)
+    extends Actor with BridgeActor with ProxyActor {
+
+  def actorRefFactory = context
+
+  def receive = runRoute(
+    bridgeRoutes ~ proxyRoutes
+  )
+
+  implicit val exceptionHandler = ExceptionHandler {
+    case e: Exception => _.complete((500, e.getMessage))
+  }
+}
 
 object Bridge extends App {
-  implicit val system = ActorSystem("bridge-spray", ConfigFactory.load("bridge-spray.conf"))
+  import BridgeServices.executionContext
 
-  val bridgeActor = system.actorOf(Props[BridgeActor], "bridge-actor")
-  IO(Http) ! Http.Bind(bridgeActor, interface = "10.5.100.14", port = 8080)
+  implicit val system = ActorSystem("bridge", ConfigFactory.load("bridge.conf"))
 
-  println("Press [enter] to kill Bridge")
-  System.in.read()
+  val serverActor = system.actorSelection("akka.tcp://server@akka-reproducibles-server:8082/user/server-actor")
 
-  // termination, full of grace
-  Runtime.getRuntime.halt(0)
+  val servicesActor = system.actorOf(Props(classOf[BridgeServices], serverActor), "proxy-actor")
+  IO(Http) ! Http.Bind(servicesActor, interface = "akka-reproducibles-bridge", port = 8080)
 }
